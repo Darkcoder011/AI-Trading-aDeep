@@ -94,4 +94,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=10 \
     CMD curl -f http://localhost:${PORT}/api/health || exit 1
 
 # Command to run the application
-CMD ["python", "/app/backend/main.py"]
+CMD cd /app/backend && uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1 --timeout-keep-alive 75 --log-level info
