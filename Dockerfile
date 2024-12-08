@@ -29,25 +29,28 @@ RUN apt-get update && apt-get install -y \
     libblas-dev \
     liblapack-dev \
     gfortran \
+    ninja-build \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Upgrade pip
+# Upgrade pip and install build tools
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+RUN pip install --no-cache-dir cython numpy==1.21.0
 
 # Copy requirements first to leverage Docker cache
 COPY backend/requirements.txt /app/backend/
 
-# Install Python packages in stages to better handle dependencies
+# Install Python packages in stages
 RUN pip install --no-cache-dir \
-    numpy \
-    pandas \
-    scipy \
-    scikit-learn \
-    && pip install --no-cache-dir -r /app/backend/requirements.txt \
-    && pip install --no-cache-dir tensorflow==2.12.0
+    pandas==1.3.0 \
+    scipy==1.7.0 \
+    scikit-learn==0.24.0
+
+# Install remaining packages
+RUN pip install --no-cache-dir -r /app/backend/requirements.txt && \
+    pip install --no-cache-dir tensorflow==2.12.0
 
 FROM python:3.9-slim
 
