@@ -14,10 +14,7 @@ RUN npm install
 RUN npm run build
 
 # Python stage
-FROM python:3.9-slim
-
-# Set working directory
-WORKDIR /app
+FROM python:3.9-slim as builder
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -34,7 +31,39 @@ RUN apt-get update && apt-get install -y \
     gfortran \
     && rm -rf /var/lib/apt/lists/*
 
-# Set environment variables for better performance
+# Set working directory
+WORKDIR /app
+
+# Upgrade pip
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+
+# Copy requirements first to leverage Docker cache
+COPY backend/requirements.txt /app/backend/
+
+# Install Python packages in stages to better handle dependencies
+RUN pip install --no-cache-dir \
+    numpy \
+    pandas \
+    scipy \
+    scikit-learn \
+    && pip install --no-cache-dir -r /app/backend/requirements.txt \
+    && pip install --no-cache-dir tensorflow==2.12.0
+
+FROM python:3.9-slim
+
+# Copy installed packages from builder
+COPY --from=builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libgomp1 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8000
 ENV PYTHONPATH=/app
@@ -44,15 +73,7 @@ ENV TORCH_HOME=/app/.torch
 ENV TRANSFORMERS_CACHE=/app/.transformers
 ENV NUMBA_CACHE_DIR=/app/.numba
 
-# Copy requirements first to leverage Docker cache
-COPY backend/requirements.txt /app/backend/
-
-# Install Python packages with optimizations
-RUN pip install --no-cache-dir -r /app/backend/requirements.txt && \
-    pip install --no-cache-dir tensorflow==2.12.0 && \
-    python -m spacy download en_core_web_sm
-
-# Copy the application code
+# Copy application code
 COPY . .
 
 # Copy built frontend from previous stage
@@ -62,13 +83,10 @@ COPY --from=frontend-build /app/frontend/build /app/frontend/build
 RUN mkdir -p /app/.torch /app/.transformers /app/.numba && \
     chmod -R 777 /app/.torch /app/.transformers /app/.numba
 
-# Change to the backend directory
-WORKDIR /app/backend
-
-# Expose the port
+# Expose port
 EXPOSE $PORT
 
-# Health check configuration
+# Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=30s --retries=10 \
     CMD curl -f http://localhost:${PORT}/api/health || exit 1
 
