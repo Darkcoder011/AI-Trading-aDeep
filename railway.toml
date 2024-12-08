@@ -3,9 +3,11 @@ builder = "DOCKERFILE"
 watchPatterns = ["backend/**/*", "frontend/**/*"]
 
 [deploy]
-startCommand = "python backend/main.py"
+startCommand = "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
 healthcheckPath = "/api/health"
-healthcheckTimeout = 100
+healthcheckTimeout = 180
+restartPolicyType = "on_failure"
+numReplicas = 1
 
 [env]
 PYTHON_VERSION = "3.9"

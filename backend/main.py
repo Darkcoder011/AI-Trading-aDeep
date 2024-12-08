@@ -21,7 +21,7 @@ app = FastAPI(title="LLM Market Analysis Platform")
 origins = [
     "http://localhost:3000",  # React development server
     "https://localhost:3000",
-    "*"  # Allow all origins in production (you might want to restrict this)
+    "*"  # Allow all origins in production
 ]
 
 app.add_middleware(
@@ -31,6 +31,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Health check endpoint - this should be the first route
+@app.get("/api/health")
+async def health_check():
+    try:
+        return {
+            "status": "healthy",
+            "timestamp": os.environ.get('RAILWAY_GIT_COMMIT_SHA', 'development')
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Mount static files from frontend build
 static_files_dir = Path(__file__).parent.parent / "frontend" / "build"
@@ -47,15 +58,17 @@ app.include_router(llm_analysis.router, prefix="/api/v1", tags=["llm"])
 app.include_router(llm_new.router, prefix="/api/v1", tags=["llm"])
 app.include_router(automl_analysis.router, prefix="/api/automl", tags=["automl"])
 
-# Health check endpoint
-@app.get("/api/health")
-async def health_check():
-    return {"status": "healthy"}
-
 @app.get("/")
 async def root():
     return {"message": "Trading Analysis API"}
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=port,
+        log_level="info",
+        timeout_keep_alive=65,
+        workers=1
+    )
