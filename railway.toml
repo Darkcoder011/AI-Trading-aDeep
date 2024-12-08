@@ -3,15 +3,17 @@ builder = "DOCKERFILE"
 watchPatterns = ["backend/**/*", "frontend/**/*"]
 
 [deploy]
-startCommand = "python backend/main.py"
+startCommand = "cd backend && python main.py"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 numReplicas = 1
-healthcheckInterval = "15s"
-healthcheckMaxRetries = 5
+healthcheckInterval = "30s"
+healthcheckMaxRetries = 10
 
 [env]
 PYTHON_VERSION = "3.9"
 NODE_VERSION = "16"
 PYTHONUNBUFFERED = "1"
+PYTHONPATH = "/app"
+DEBUG = "False"

@@ -25,10 +25,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first to leverage Docker cache
-COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY backend/requirements.txt backend/
+RUN pip install --no-cache-dir -r backend/requirements.txt
 
-# Copy the rest of the application
+# Copy the application code
 COPY . .
 
 # Copy built frontend from previous stage
@@ -37,18 +37,17 @@ COPY --from=frontend-build /app/frontend/build ./frontend/build
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8000
-ENV DEBUG=False
-ENV MAX_WORKERS=1
-ENV TIMEOUT=65
-ENV WORKERS_PER_CORE=1
-ENV LOG_LEVEL=info
+ENV PYTHONPATH=/app
+
+# Change to the backend directory
+WORKDIR /app/backend
 
 # Expose the port
 EXPOSE $PORT
 
-# Health check with increased timeout and interval
+# Health check configuration
 HEALTHCHECK --interval=15s --timeout=30s --start-period=30s --retries=5 \
     CMD curl -f http://localhost:${PORT}/api/health || exit 1
 
 # Command to run the application
-CMD ["python", "backend/main.py"]
+CMD ["python", "main.py"]
