@@ -10,6 +10,7 @@ restartPolicyType = "on_failure"
 numReplicas = 1
 healthcheckInterval = "30s"
 healthcheckMaxRetries = 10
+startupDelay = "60s"
 
 [env]
 PYTHON_VERSION = "3.9"

@@ -87,7 +87,7 @@ RUN mkdir -p /app/.torch /app/.transformers /app/.numba && \
 EXPOSE $PORT
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=30s --retries=10 \
+HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=10 \
     CMD curl -f http://localhost:${PORT}/api/health || exit 1
 
 # Command to run the application
