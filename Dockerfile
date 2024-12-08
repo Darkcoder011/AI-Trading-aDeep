@@ -46,7 +46,7 @@ COPY backend/requirements.txt /app/backend/
 RUN pip install --no-cache-dir \
     pandas==1.3.0 \
     scipy==1.7.0 \
-    scikit-learn==0.24.0
+    scikit-learn==1.0.2
 
 # Install remaining packages
 RUN pip install --no-cache-dir -r /app/backend/requirements.txt && \
