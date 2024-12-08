@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install -y \
 # Copy backend requirements and install dependencies
 COPY backend/requirements.txt ./backend/
 RUN pip install --no-cache-dir -r backend/requirements.txt
-RUN pip install --no-cache-dir uvicorn
+RUN pip install --no-cache-dir uvicorn gunicorn
 
 # Copy backend code
 COPY backend/ ./backend/
@@ -42,13 +42,15 @@ ENV DEBUG=False
 ENV PYTHONUNBUFFERED=1
 ENV MAX_WORKERS=1
 ENV TIMEOUT=65
+ENV WORKERS_PER_CORE=1
+ENV LOG_LEVEL=info
 
 # Expose port
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/api/health || exit 1
+# Health check with increased timeout and interval
+HEALTHCHECK --interval=15s --timeout=30s --start-period=30s --retries=5 \
+    CMD curl -f http://localhost:${PORT}/api/health || exit 1
 
 # Command to run the application
-CMD ["sh", "-c", "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1 --timeout-keep-alive 65"]
+CMD ["sh", "-c", "cd backend && uvicorn main:app --host 0.0.0.0 --port ${PORT} --workers 1 --timeout-keep-alive 65 --log-level info"]

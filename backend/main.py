@@ -4,6 +4,8 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 import os
 from pathlib import Path
+import logging
+import datetime
 from routes import (
     upload_router,
     analyze_router,
@@ -14,6 +16,8 @@ from routes import (
     automl_analysis,
     llm_new
 )
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="LLM Market Analysis Platform")
 
@@ -33,15 +37,26 @@ app.add_middleware(
 )
 
 # Health check endpoint - this should be the first route
+@app.get("/")
 @app.get("/api/health")
 async def health_check():
+    """
+    Health check endpoint that ensures the application is running properly
+    """
     try:
         return {
             "status": "healthy",
-            "timestamp": os.environ.get('RAILWAY_GIT_COMMIT_SHA', 'development')
+            "service": "llm-market-analysis",
+            "version": os.environ.get('RAILWAY_GIT_COMMIT_SHA', 'development'),
+            "timestamp": str(datetime.datetime.utcnow()),
+            "uptime": "ok"
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Health check failed: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={"status": "unhealthy", "error": str(e)}
+        )
 
 # Mount static files from frontend build
 static_files_dir = Path(__file__).parent.parent / "frontend" / "build"
@@ -58,7 +73,7 @@ app.include_router(llm_analysis.router, prefix="/api/v1", tags=["llm"])
 app.include_router(llm_new.router, prefix="/api/v1", tags=["llm"])
 app.include_router(automl_analysis.router, prefix="/api/automl", tags=["automl"])
 
-@app.get("/")
+@app.get("/root")
 async def root():
     return {"message": "Trading Analysis API"}
 
