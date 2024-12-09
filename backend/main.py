@@ -21,13 +21,16 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="LLM Market Analysis Platform")
 
-# CORS configuration
+# CORS Configuration
+origins = [
+    "http://localhost:3000",  # React development server
+    "https://localhost:3000",
+    "*"  # Allow all origins in production
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        os.getenv("CORS_ORIGINS", "https://llm-market-analysis.netlify.app"),
-        "http://localhost:3000"  # For local development
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

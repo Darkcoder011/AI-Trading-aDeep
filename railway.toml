@@ -2,7 +2,7 @@
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 buildCommand = ""
-watchPatterns = ["backend/**/*"]
+watchPatterns = ["backend/**/*", "frontend/**/*"]
 
 [deploy]
 startCommand = "cd /app/backend && uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1 --timeout-keep-alive 75 --log-level info"
@@ -22,6 +22,7 @@ root_directory = "/app"
 
 [env]
 PYTHON_VERSION = "3.9"
+NODE_VERSION = "16"
 PYTHONUNBUFFERED = "1"
 PYTHONPATH = "/app"
 DEBUG = "False"
@@ -30,4 +31,3 @@ PORT = "8000"
 MAX_WORKERS = "1"
 TIMEOUT = "75"
 LOG_LEVEL = "info"
-CORS_ORIGINS = "https://llm-market-analysis.netlify.app"
