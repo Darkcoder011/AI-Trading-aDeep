@@ -256,7 +256,7 @@ llm-market-analysis/
 3. Start the backend server:
    ```bash
    cd backend
-   uvicorn main:app --reload
+   python -m   uvicorn main:app --reload
    ```
 
 ### Frontend Setup

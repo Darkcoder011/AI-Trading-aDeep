@@ -16,6 +16,12 @@ tpot>=0.11.7
 lazypredict>=0.2.12
 rich>=10.0.0
 ta>=0.10.0
+tensorflow
+prophet
+arch
+optuna-integration[sklearn]
+scikit-optimize
+h2o
 
 # Authentication & Security
 python-jose>=3.3.0
